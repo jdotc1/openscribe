@@ -3,6 +3,32 @@ import { blendSpeed, estimateDuration, observedSecondsPerCall, predictedCalls } 
 import { BLIND_THRESHOLD, COMPARED, PROVIDER_PRESETS, modelProposed, modelStudy, presetStudy, typicalSecondsPerCall } from './presets'
 
 describe('fiches des fournisseurs', () => {
+  it('les identifiants, adresses et guides de configuration sont cohérents', () => {
+    expect(new Set(PROVIDER_PRESETS.map((p) => p.id)).size).toBe(PROVIDER_PRESETS.length)
+    for (const p of PROVIDER_PRESETS) {
+      expect(p.id.trim(), 'identifiant vide').not.toBe('')
+      expect(p.steps.length, `${p.id}: guide vide`).toBeGreaterThan(0)
+      if (p.kind === 'custom') {
+        expect(p.baseUrl, p.id).toBe('') // L'utilisateur renseigne l'adresse.
+      } else if (p.kind === 'local') {
+        expect(p.baseUrl, p.id).toMatch(/^http:\/\/(?:localhost|127\.0\.0\.1|\[::1\])(?::\d+)?\//)
+      } else {
+        expect(p.baseUrl, p.id).toMatch(/^https:\/\//)
+      }
+      if (p.needsKey && p.kind !== 'custom') {
+        expect(p.keyUrl, `${p.id}: lien vers les clés`).toMatch(/^https:\/\//)
+      }
+      if (p.keyUrl) expect(p.keyUrl, p.id).toMatch(/^https:\/\//)
+      for (const step of p.steps) {
+        expect(step.text.trim(), `${p.id}: étape vide`).not.toBe('')
+        if (step.link) {
+          expect(step.link.label.trim(), `${p.id}: libellé de lien vide`).not.toBe('')
+          expect(step.link.url, `${p.id}: lien d'étape non sécurisé`).toMatch(/^https:\/\//)
+        }
+      }
+    }
+  })
+
   it('le modèle par défaut est le seul recommandé de sa liste expliquée', () => {
     for (const p of PROVIDER_PRESETS.filter((x) => x.models?.length)) {
       const recommended = p.models!.filter((m) => m.recommended)
