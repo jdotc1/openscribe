@@ -9,6 +9,8 @@ import { fileURLToPath, URL } from 'node:url'
 const isolationHeaders = {
   'Cross-Origin-Opener-Policy': 'same-origin',
   'Cross-Origin-Embedder-Policy': 'credentialless',
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'no-referrer',
 }
 
 export default defineConfig({
